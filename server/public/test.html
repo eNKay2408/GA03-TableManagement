@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Tester - GA03 Table Management</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #00d9ff;
+      text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+    .card h3 {
+      color: #00d9ff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .method {
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .get { background: #28a745; }
+    .post { background: #ffc107; color: #000; }
+    .put { background: #17a2b8; }
+    .patch { background: #6f42c1; }
+    .delete { background: #dc3545; }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #aaa;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #00d9ff;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #00d9ff, #0066ff);
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0, 217, 255, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .response-area {
+      margin-top: 15px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .response-area pre {
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .success { color: #28a745; }
+    .error { color: #dc3545; }
+    
+    .tables-list {
+      margin-top: 20px;
+    }
+    .table-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .table-item.inactive {
+      opacity: 0.5;
+    }
+    .table-info {
+      display: flex;
+      gap: 15px;
+    }
+    .table-actions {
+      display: flex;
+      gap: 5px;
+    }
+    .table-actions button {
+      width: auto;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    
+    .qr-container {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .qr-container img {
+      max-width: 200px;
+      border-radius: 10px;
+      border: 3px solid #00d9ff;
+    }
+    
+    .status-badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .status-active { background: #28a745; }
+    .status-inactive { background: #dc3545; }
+    
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #00d9ff;
+    }
+    #loading.show { display: block; }
+  </style>
+</head>
+<body>
+  <h1>🍽️ GA03 - Table Management API Tester</h1>
+  
+  <div class="container">
+    <!-- List Tables -->
+    <div class="card">
+      <h3><span class="method get">GET</span> Danh sách bàn</h3>
+      <div class="form-group">
+        <label>Filter by Status:</label>
+        <select id="filterStatus">
+          <option value="">Tất cả</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <button onclick="getTables()">📋 Lấy danh sách</button>
+      <div id="tablesList" class="tables-list"></div>
+    </div>
+
+    <!-- Create Table -->
+    <div class="card">
+      <h3><span class="method post">POST</span> Tạo bàn mới</h3>
+      <div class="form-group">
+        <label>Số bàn (Table Number):</label>
+        <input type="number" id="createTableNumber" placeholder="1, 2, 3..." min="1">
+      </div>
+      <div class="form-group">
+        <label>Sức chứa (Capacity): 1-20</label>
+        <input type="number" id="createCapacity" placeholder="4" min="1" max="20">
+      </div>
+      <button onclick="createTable()">➕ Tạo bàn</button>
+      <div class="response-area">
+        <pre id="createResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+    </div>
+
+    <!-- Get Table Detail -->
+    <div class="card">
+      <h3><span class="method get">GET</span> Chi tiết bàn + QR</h3>
+      <div class="form-group">
+        <label>Table ID:</label>
+        <input type="text" id="detailTableId" placeholder="Paste table ID here...">
+      </div>
+      <button onclick="getTableDetail()">🔍 Xem chi tiết</button>
+      <div class="response-area">
+        <pre id="detailResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+      <div class="qr-container" id="qrDisplay"></div>
+    </div>
+
+    <!-- Update Table -->
+    <div class="card">
+      <h3><span class="method put">PUT</span> Cập nhật bàn</h3>
+      <div class="form-group">
+        <label>Table ID:</label>
+        <input type="text" id="updateTableId" placeholder="Paste table ID here...">
+      </div>
+      <div class="form-group">
+        <label>Số bàn mới:</label>
+        <input type="number" id="updateTableNumber" placeholder="1" min="1">
+      </div>
+      <div class="form-group">
+        <label>Sức chứa mới:</label>
+        <input type="number" id="updateCapacity" placeholder="4" min="1" max="20">
+      </div>
+      <button onclick="updateTable()">✏️ Cập nhật</button>
+      <div class="response-area">
+        <pre id="updateResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+    </div>
+
+    <!-- Soft Delete -->
+    <div class="card">
+      <h3><span class="method patch">PATCH</span> Đổi trạng thái (Soft Delete)</h3>
+      <div class="form-group">
+        <label>Table ID:</label>
+        <input type="text" id="statusTableId" placeholder="Paste table ID here...">
+      </div>
+      <div class="form-group">
+        <label>Trạng thái mới:</label>
+        <select id="newStatus">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive (Soft Delete)</option>
+        </select>
+      </div>
+      <button onclick="updateStatus()">🔄 Đổi trạng thái</button>
+      <div class="response-area">
+        <pre id="statusResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+    </div>
+
+    <!-- Regenerate QR -->
+    <div class="card">
+      <h3><span class="method post">POST</span> Regenerate QR Code</h3>
+      <div class="form-group">
+        <label>Table ID:</label>
+        <input type="text" id="regenerateTableId" placeholder="Paste table ID here...">
+      </div>
+      <button onclick="regenerateQR()">🔄 Tạo QR mới</button>
+      <div class="response-area">
+        <pre id="regenerateResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+      <div class="qr-container" id="newQrDisplay"></div>
+    </div>
+
+    <!-- Verify Token -->
+    <div class="card">
+      <h3><span class="method get">GET</span> Verify QR Token</h3>
+      <div class="form-group">
+        <label>QR Token (JWT):</label>
+        <input type="text" id="verifyToken" placeholder="Paste token here...">
+      </div>
+      <button onclick="verifyToken()">✅ Kiểm tra token</button>
+      <div class="response-area">
+        <pre id="verifyResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+    </div>
+
+    <!-- Health Check -->
+    <div class="card">
+      <h3><span class="method get">GET</span> Health Check</h3>
+      <button onclick="healthCheck()">❤️ Kiểm tra server</button>
+      <div class="response-area">
+        <pre id="healthResponse">Response sẽ hiển thị ở đây...</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api';
+
+    // Helper function to make API calls
+    async function apiCall(url, method = 'GET', body = null) {
+      try {
+        const options = {
+          method,
+          headers: { 'Content-Type': 'application/json' }
+        };
+        if (body) options.body = JSON.stringify(body);
+        
+        const response = await fetch(url, options);
+        const data = await response.json();
+        return { success: response.ok, data };
+      } catch (error) {
+        return { success: false, data: { error: error.message } };
+      }
+    }
+
+    // Format JSON for display
+    function formatJson(obj) {
+      return JSON.stringify(obj, null, 2);
+    }
+
+    // Health Check
+    async function healthCheck() {
+      const result = await apiCall(`${API_BASE}/health`);
+      const el = document.getElementById('healthResponse');
+      el.className = result.success ? 'success' : 'error';
+      el.textContent = formatJson(result.data);
+    }
+
+    // Get Tables
+    async function getTables() {
+      const status = document.getElementById('filterStatus').value;
+      const url = status ? `${API_BASE}/tables?status=${status}` : `${API_BASE}/tables`;
+      const result = await apiCall(url);
+      
+      const container = document.getElementById('tablesList');
+      if (result.success && result.data.data) {
+        container.innerHTML = result.data.data.map(table => `
+          <div class="table-item ${table.status === 'inactive' ? 'inactive' : ''}">
+            <div class="table-info">
+              <span><strong>Bàn ${table.table_number}</strong></span>
+              <span>👥 ${table.capacity}</span>
+              <span class="status-badge status-${table.status}">${table.status}</span>
+            </div>
+            <div class="table-actions">
+              <button onclick="copyId('${table._id}')">📋 Copy ID</button>
+              <button onclick="viewQR('${table._id}')">QR</button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = `<pre class="error">${formatJson(result.data)}</pre>`;
+      }
+    }
+
+    // Copy ID to clipboard
+    function copyId(id) {
+      navigator.clipboard.writeText(id);
+      alert('Đã copy ID: ' + id);
+    }
+
+    // View QR
+    async function viewQR(id) {
+      document.getElementById('detailTableId').value = id;
+      await getTableDetail();
+    }
+
+    // Create Table
+    async function createTable() {
+      const table_number = parseInt(document.getElementById('createTableNumber').value);
+      const capacity = parseInt(document.getElementById('createCapacity').value);
+      
+      if (!table_number || !capacity) {
+        alert('Vui lòng nhập đầy đủ thông tin!');
+        return;
+      }
+      
+      const result = await apiCall(`${API_BASE}/tables`, 'POST', { table_number, capacity });
+      const el = document.getElementById('createResponse');
+      el.className = result.success ? 'success' : 'error';
+      el.textContent = formatJson(result.data);
+      
+      if (result.success) {
+        getTables(); // Refresh list
+      }
+    }
+
+    // Get Table Detail
+    async function getTableDetail() {
+      const id = document.getElementById('detailTableId').value;
+      if (!id) {
+        alert('Vui lòng nhập Table ID!');
+        return;
+      }
+      
+      const result = await apiCall(`${API_BASE}/tables/${id}`);
+      const el = document.getElementById('detailResponse');
+      el.className = result.success ? 'success' : 'error';
+      
+      // Don't show qr_image in text (too long)
+      const displayData = { ...result.data };
+      if (displayData.data && displayData.data.qr_image) {
+        displayData.data.qr_image = '[BASE64_IMAGE - shown below]';
+      }
+      el.textContent = formatJson(displayData);
+      
+      // Show QR image
+      const qrContainer = document.getElementById('qrDisplay');
+      if (result.success && result.data.data && result.data.data.qr_image) {
+        qrContainer.innerHTML = `
+          <p>QR Code cho Bàn ${result.data.data.table_number}:</p>
+          <img src="${result.data.data.qr_image}" alt="QR Code">
+        `;
+      } else {
+        qrContainer.innerHTML = '';
+      }
+    }
+
+    // Update Table
+    async function updateTable() {
+      const id = document.getElementById('updateTableId').value;
+      const table_number = parseInt(document.getElementById('updateTableNumber').value);
+      const capacity = parseInt(document.getElementById('updateCapacity').value);
+      
+      if (!id || !table_number || !capacity) {
+        alert('Vui lòng nhập đầy đủ thông tin!');
+        return;
+      }
+      
+      const result = await apiCall(`${API_BASE}/tables/${id}`, 'PUT', { table_number, capacity });
+      const el = document.getElementById('updateResponse');
+      el.className = result.success ? 'success' : 'error';
+      el.textContent = formatJson(result.data);
+      
+      if (result.success) getTables();
+    }
+
+    // Update Status
+    async function updateStatus() {
+      const id = document.getElementById('statusTableId').value;
+      const status = document.getElementById('newStatus').value;
+      
+      if (!id) {
+        alert('Vui lòng nhập Table ID!');
+        return;
+      }
+      
+      const result = await apiCall(`${API_BASE}/tables/${id}/status`, 'PATCH', { status });
+      const el = document.getElementById('statusResponse');
+      el.className = result.success ? 'success' : 'error';
+      el.textContent = formatJson(result.data);
+      
+      if (result.success) getTables();
+    }
+
+    // Regenerate QR
+    async function regenerateQR() {
+      const id = document.getElementById('regenerateTableId').value;
+      if (!id) {
+        alert('Vui lòng nhập Table ID!');
+        return;
+      }
+      
+      const result = await apiCall(`${API_BASE}/tables/${id}/regenerate-qr`, 'POST');
+      const el = document.getElementById('regenerateResponse');
+      el.className = result.success ? 'success' : 'error';
+      
+      const displayData = { ...result.data };
+      if (displayData.data && displayData.data.qr_image) {
+        displayData.data.qr_image = '[BASE64_IMAGE - shown below]';
+      }
+      el.textContent = formatJson(displayData);
+      
+      const qrContainer = document.getElementById('newQrDisplay');
+      if (result.success && result.data.data && result.data.data.qr_image) {
+        qrContainer.innerHTML = `
+          <p>QR Code mới:</p>
+          <img src="${result.data.data.qr_image}" alt="New QR Code">
+        `;
+      }
+    }
+
+    // Verify Token
+    async function verifyToken() {
+      const token = document.getElementById('verifyToken').value;
+      if (!token) {
+        alert('Vui lòng nhập token!');
+        return;
+      }
+      
+      const result = await apiCall(`${API_BASE}/verify?token=${encodeURIComponent(token)}`);
+      const el = document.getElementById('verifyResponse');
+      el.className = result.success ? 'success' : 'error';
+      el.textContent = formatJson(result.data);
+    }
+
+    // Load tables on page load
+    window.onload = () => {
+      healthCheck();
+      getTables();
+    };
+  </script>
+</body>
+</html>
