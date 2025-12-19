@@ -20,11 +20,11 @@ const seedDatabase = async () => {
 
         // Seed sample tables
         const sampleTables = [
-            { table_number: 1, capacity: 2, status: 'active' },
-            { table_number: 2, capacity: 4, status: 'active' },
-            { table_number: 3, capacity: 4, status: 'active' },
-            { table_number: 4, capacity: 6, status: 'active' },
-            { table_number: 5, capacity: 8, status: 'active' }
+            { table_number: 'T001', capacity: 2, location: 'Indoor', status: 'Active', description: 'Small table near entrance' },
+            { table_number: 'T002', capacity: 4, location: 'Indoor', status: 'Active', description: 'Medium table by window' },
+            { table_number: 'T003', capacity: 4, location: 'Outdoor', status: 'Active', description: 'Outdoor seating area' },
+            { table_number: 'T004', capacity: 6, location: 'Patio', status: 'Active', description: 'Large patio table' },
+            { table_number: 'T005', capacity: 8, location: 'VIP Room', status: 'Active', description: 'VIP private dining' }
         ];
 
         await Table.insertMany(sampleTables);

@@ -21,11 +21,15 @@ class TableController {
      */
     static async getAllTables(req, res) {
         try {
-            const { status } = req.query;
+            const { status, location } = req.query;
             const filter = {};
 
-            if (status && ['active', 'inactive'].includes(status)) {
+            if (status && ['Active', 'Inactive'].includes(status)) {
                 filter.status = status;
+            }
+
+            if (location) {
+                filter.location = location;
             }
 
             const tables = await Table.find(filter).sort({ table_number: 1 });
@@ -100,22 +104,22 @@ class TableController {
      */
     static async createTable(req, res) {
         try {
-            const { table_number, capacity } = req.body;
+            const { table_number, capacity, location, description } = req.body;
 
             // Validation: Check required fields
-            if (table_number === undefined || capacity === undefined) {
+            if (!table_number || capacity === undefined || !location) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: table_number and capacity are required'
+                    message: 'Missing required fields: table_number, capacity, and location are required'
                 });
             }
 
-            // Validation: table_number must be a positive integer
-            const tableNum = parseInt(table_number);
-            if (isNaN(tableNum) || tableNum <= 0) {
+            // Validation: table_number must not be empty
+            const tableNum = String(table_number).trim();
+            if (!tableNum) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Table number must be a positive integer'
+                    message: 'Table number cannot be empty'
                 });
             }
 
@@ -141,7 +145,9 @@ class TableController {
             const newTable = await Table.create({
                 table_number: tableNum,
                 capacity: cap,
-                status: 'active',
+                location: location.trim(),
+                description: description ? description.trim() : '',
+                status: 'Active',
                 restaurant_id: process.env.RESTAURANT_ID || 'rest_001'
             });
 
@@ -200,7 +206,7 @@ class TableController {
     static async updateTable(req, res) {
         try {
             const { id } = req.params;
-            const { table_number, capacity } = req.body;
+            const { table_number, capacity, location, description } = req.body;
 
             // Validate MongoDB ObjectId format
             if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -220,19 +226,19 @@ class TableController {
             }
 
             // Validation: Check required fields
-            if (table_number === undefined || capacity === undefined) {
+            if (!table_number || capacity === undefined || !location) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: table_number and capacity are required'
+                    message: 'Missing required fields: table_number, capacity, and location are required'
                 });
             }
 
-            // Validation: table_number must be a positive integer
-            const tableNum = parseInt(table_number);
-            if (isNaN(tableNum) || tableNum <= 0) {
+            // Validation: table_number must not be empty
+            const tableNum = String(table_number).trim();
+            if (!tableNum) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Table number must be a positive integer'
+                    message: 'Table number cannot be empty'
                 });
             }
 
@@ -258,9 +264,19 @@ class TableController {
             }
 
             // Update the table
+            const updateData = {
+                table_number: tableNum,
+                capacity: cap,
+                location: location.trim()
+            };
+
+            if (description !== undefined) {
+                updateData.description = description.trim();
+            }
+
             const updatedTable = await Table.findByIdAndUpdate(
                 id,
-                { table_number: tableNum, capacity: cap },
+                updateData,
                 { new: true, runValidators: true }
             );
 
@@ -314,10 +330,10 @@ class TableController {
             }
 
             // Validation: Check status value
-            if (!status || !['active', 'inactive'].includes(status)) {
+            if (!status || !['Active', 'Inactive'].includes(status)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Invalid status. Must be "active" or "inactive"'
+                    message: 'Invalid status. Must be "Active" or "Inactive"'
                 });
             }
 
@@ -331,7 +347,7 @@ class TableController {
             }
 
             // IMPORTANT: Check for active orders before deactivating
-            if (status === 'inactive') {
+            if (status === 'Inactive') {
                 const activeOrdersCount = await Order.countDocuments({
                     table_id: id,
                     status: { $in: ['pending', 'preparing'] }
@@ -354,7 +370,7 @@ class TableController {
 
             res.status(200).json({
                 success: true,
-                message: `Table ${status === 'active' ? 'activated' : 'deactivated'} successfully`,
+                message: `Table ${status === 'Active' ? 'activated' : 'deactivated'} successfully`,
                 data: updatedTable
             });
         } catch (error) {

@@ -61,9 +61,9 @@ tableSchema.index({ location: 1 });
 tableSchema.index({ qr_token: 1 });
 
 // Custom validation for unique table number
-tableSchema.pre('save', async function(next) {
+tableSchema.pre('save', async function (next) {
     if (this.isModified('table_number')) {
-        const existingTable = await this.constructor.findOne({ 
+        const existingTable = await this.constructor.findOne({
             table_number: this.table_number,
             _id: { $ne: this._id }
         });
