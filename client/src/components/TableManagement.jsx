@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaUsers, FaQrcode, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaUsers, FaQrcode, FaFilter } from 'react-icons/fa';
 import CreateTableModal from './CreateTableModal';
 import EditTableModal from './EditTableModal';
 import QRCodeModal from './QRCodeModal';
@@ -19,8 +19,7 @@ const TableManagement = () => {
   // Filter and Sort states
   const [filters, setFilters] = useState({
     status: '',
-    location: '',
-    capacity: ''
+    location: ''
   });
   
   const [sortConfig, setSortConfig] = useState({
@@ -42,13 +41,76 @@ const TableManagement = () => {
   useEffect(() => {
     try {
       const mockTables = [
-        { id: 1, number: 'T001', capacity: 4, status: 'available', location: 'Khu A', createdAt: '2024-01-15' },
-        { id: 2, number: 'T002', capacity: 2, status: 'occupied', location: 'Khu A', createdAt: '2024-01-16' },
-        { id: 3, number: 'T003', capacity: 6, status: 'reserved', location: 'Khu B', createdAt: '2024-01-17' },
-        { id: 4, number: 'T004', capacity: 8, status: 'available', location: 'Khu B', createdAt: '2024-01-18' },
-        { id: 5, number: 'T005', capacity: 4, status: 'available', location: 'Khu C', createdAt: '2024-01-19' },
-        { id: 6, number: 'T006', capacity: 2, status: 'occupied', location: 'Khu VIP', createdAt: '2024-01-20' },
-        { id: 7, number: 'T007', capacity: 10, status: 'reserved', location: 'Khu VIP', createdAt: '2024-01-21' },
+        { 
+          id: 1, 
+          number: 'T001', 
+          capacity: 4, 
+          status: 'Active', 
+          location: 'Indoor', 
+          description: 'Bàn gần cử a sổ', 
+          createdAt: '2024-01-15',
+          hasQRCode: true
+        },
+        { 
+          id: 2, 
+          number: 'T002', 
+          capacity: 2, 
+          status: 'Active', 
+          location: 'Indoor', 
+          description: '', 
+          createdAt: '2024-01-16',
+          hasQRCode: true
+        },
+        { 
+          id: 3, 
+          number: 'T003', 
+          capacity: 6, 
+          status: 'Inactive', 
+          location: 'Outdoor', 
+          description: 'Bàn ngoài hiên', 
+          createdAt: '2024-01-17',
+          hasQRCode: false
+        },
+        { 
+          id: 4, 
+          number: 'T004', 
+          capacity: 8, 
+          status: 'Active', 
+          location: 'Patio', 
+          description: 'Bàn lớn cho nhóm', 
+          createdAt: '2024-01-18',
+          hasQRCode: true
+        },
+        { 
+          id: 5, 
+          number: 'T005', 
+          capacity: 4, 
+          status: 'Active', 
+          location: 'VIP Room', 
+          description: '', 
+          createdAt: '2024-01-19',
+          hasQRCode: true
+        },
+        { 
+          id: 6, 
+          number: 'T006', 
+          capacity: 2, 
+          status: 'Active', 
+          location: 'VIP Room', 
+          description: 'Bàn VIP nhỏ', 
+          createdAt: '2024-01-20',
+          hasQRCode: false
+        },
+        { 
+          id: 7, 
+          number: 'T007', 
+          capacity: 10, 
+          status: 'Inactive', 
+          location: 'Outdoor', 
+          description: 'Bàn lớn ngoài trời', 
+          createdAt: '2024-01-21',
+          hasQRCode: false
+        },
       ];
       setTables(mockTables);
     } catch (err) {
@@ -60,7 +122,8 @@ const TableManagement = () => {
     const newTable = {
       id: tables.length + 1,
       ...tableData,
-      status: 'available',
+      status: 'Active',
+      hasQRCode: false,
       createdAt: new Date().toISOString().split('T')[0]
     };
     setTables([...tables, newTable]);
@@ -77,9 +140,19 @@ const TableManagement = () => {
     setEditingTable(null);
   };
 
-  const handleDeleteTable = (tableId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
-      setTables(tables.filter(table => table.id !== tableId));
+  const handleToggleTableStatus = (tableId) => {
+    const table = tables.find(t => t.id === tableId);
+    if (!table) return;
+    
+    const action = table.status === 'Active' ? 'tạm ngưng' : 'kích hoạt lại';
+    const newStatus = table.status === 'Active' ? 'Inactive' : 'Active';
+    
+    if (window.confirm(`Bạn có chắc chắn muốn ${action} bàn ${table.number}?`)) {
+      setTables(tables.map(t => 
+        t.id === tableId 
+          ? { ...t, status: newStatus }
+          : t
+      ));
     }
   };
 
@@ -101,27 +174,6 @@ const TableManagement = () => {
       
       // Location filter  
       if (filters.location && table.location !== filters.location) return false;
-      
-      // Capacity filter
-      if (filters.capacity) {
-        const capacity = table.capacity;
-        switch (filters.capacity) {
-          case '1-2':
-            if (capacity < 1 || capacity > 2) return false;
-            break;
-          case '3-4':
-            if (capacity < 3 || capacity > 4) return false;
-            break;
-          case '5-6':
-            if (capacity < 5 || capacity > 6) return false;
-            break;
-          case '7+':
-            if (capacity < 7) return false;
-            break;
-          default:
-            break;
-        }
-      }
       
       return true;
     });
@@ -157,8 +209,7 @@ const TableManagement = () => {
   const resetFiltersAndSort = () => {
     setFilters({
       status: '',
-      location: '',
-      capacity: ''
+      location: ''
     });
     setSortConfig({
       field: 'number',
@@ -168,12 +219,11 @@ const TableManagement = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      available: { class: 'status-available', text: 'Trống' },
-      occupied: { class: 'status-occupied', text: 'Có khách' },
-      reserved: { class: 'status-reserved', text: 'Đã đặt' }
+      Active: { class: 'status-active', text: 'Kích hoạt' },
+      Inactive: { class: 'status-inactive', text: 'Tạm ngưng' }
     };
     
-    const config = statusConfig[status] || statusConfig.available;
+    const config = statusConfig[status] || statusConfig.Active;
     return <span className={`status-badge ${config.class}`}>{config.text}</span>;
   };
 
@@ -212,21 +262,15 @@ const TableManagement = () => {
           <p className="stat-number">{filteredAndSortedTables.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Bàn trống</h3>
-          <p className="stat-number available">
-            {tables.filter(t => t.status === 'available').length}
+          <h3>Bàn kích hoạt</h3>
+          <p className="stat-number active">
+            {tables.filter(t => t.status === 'Active').length}
           </p>
         </div>
         <div className="stat-card">
-          <h3>Bàn có khách</h3>
-          <p className="stat-number occupied">
-            {tables.filter(t => t.status === 'occupied').length}
-          </p>
-        </div>
-        <div className="stat-card">
-          <h3>Bàn đã đặt</h3>
-          <p className="stat-number reserved">
-            {tables.filter(t => t.status === 'reserved').length}
+          <h3>Bàn tạm ngưng</h3>
+          <p className="stat-number inactive">
+            {tables.filter(t => t.status === 'Inactive').length}
           </p>
         </div>
       </div>
@@ -255,7 +299,7 @@ const TableManagement = () => {
           </thead>
           <tbody>
             {filteredAndSortedTables.map(table => (
-              <tr key={table.id}>
+              <tr key={table.id} className={table.status === 'Inactive' ? 'table-row-inactive' : ''}>
                 <td className="table-number">{table.number}</td>
                 <td>
                   <FaUsers className="capacity-icon" />
@@ -281,11 +325,13 @@ const TableManagement = () => {
                       <FaEdit />
                     </button>
                     <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDeleteTable(table.id)}
-                      title="Xóa"
+                      className={`btn btn-sm ${
+                        table.status === 'Active' ? 'btn-secondary' : 'btn-primary'
+                      }`}
+                      onClick={() => handleToggleTableStatus(table.id)}
+                      title={table.status === 'Active' ? 'Tạm ngưng' : 'Kích hoạt lại'}
                     >
-                      <FaTrash />
+                      {table.status === 'Active' ? 'Tạm ngưng' : 'Kích hoạt'}
                     </button>
                   </div>
                 </td>

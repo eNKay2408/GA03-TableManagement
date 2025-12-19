@@ -5,7 +5,8 @@ const CreateTableModal = ({ onSave, onClose }) => {
   const [formData, setFormData] = useState({
     number: '',
     capacity: '',
-    location: ''
+    location: '',
+    description: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -44,8 +45,8 @@ const CreateTableModal = ({ onSave, onClose }) => {
       const capacity = parseInt(formData.capacity);
       if (isNaN(capacity) || capacity <= 0) {
         newErrors.capacity = 'Số lượng ghế phải là số nguyên dương lớn hơn 0';
-      } else if (capacity > 20) {
-        newErrors.capacity = 'Số lượng ghế không được vượt quá 20';
+      } else if (capacity < 1 || capacity > 20) {
+        newErrors.capacity = 'Số lượng ghế phải từ 1 đến 20';
       }
     }
 
@@ -53,6 +54,8 @@ const CreateTableModal = ({ onSave, onClose }) => {
     if (!formData.location.trim()) {
       newErrors.location = 'Khu vực là bắt buộc';
     }
+
+    // Description is optional, no validation needed
 
     return newErrors;
   };
@@ -75,7 +78,8 @@ const CreateTableModal = ({ onSave, onClose }) => {
       const tableData = {
         number: formData.number.trim(),
         capacity: parseInt(formData.capacity),
-        location: formData.location.trim()
+        location: formData.location.trim(),
+        description: formData.description.trim()
       };
 
       onSave(tableData);
@@ -166,15 +170,34 @@ const CreateTableModal = ({ onSave, onClose }) => {
               disabled={isSubmitting}
             >
               <option value="">Chọn khu vực</option>
-              <option value="Khu A">Khu A - Tầng 1</option>
-              <option value="Khu B">Khu B - Tầng 1</option>
-              <option value="Khu C">Khu C - Tầng 2</option>
-              <option value="Khu D">Khu D - Tầng 2</option>
-              <option value="Khu VIP">Khu VIP - Tầng 3</option>
+              <option value="Indoor">Indoor - Trong nhà</option>
+              <option value="Outdoor">Outdoor - Ngoài trời</option>
+              <option value="Patio">Patio - Sân hiên</option>
+              <option value="VIP Room">VIP Room - Phòng VIP</option>
             </select>
             {errors.location && (
               <div className="invalid-feedback">{errors.location}</div>
             )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="description" className="form-label">
+              Mô Tả (Tùy chọn)
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              className="form-control"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Nhập mô tả về bàn (vị trí cụ thể, đặc điểm...)"
+              rows="3"
+              maxLength="500"
+              disabled={isSubmitting}
+            />
+            <small className="form-text text-muted">
+              Tối đa 500 ký tự. Còn lại: {500 - formData.description.length}
+            </small>
           </div>
 
           <div className="modal-actions">

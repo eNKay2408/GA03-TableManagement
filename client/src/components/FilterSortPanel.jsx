@@ -64,9 +64,8 @@ const FilterSortPanel = ({
               className="filter-select"
             >
               <option value="">Tất cả</option>
-              <option value="available">Trống</option>
-              <option value="occupied">Có khách</option>
-              <option value="reserved">Đã đặt</option>
+              <option value="Active">Kích hoạt</option>
+              <option value="Inactive">Tạm ngưng</option>
             </select>
           </div>
 
@@ -78,26 +77,10 @@ const FilterSortPanel = ({
               className="filter-select"
             >
               <option value="">Tất cả</option>
-              <option value="Khu A">Khu A</option>
-              <option value="Khu B">Khu B</option>
-              <option value="Khu C">Khu C</option>
-              <option value="Khu D">Khu D</option>
-              <option value="Khu VIP">Khu VIP</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">Sức chứa:</label>
-            <select
-              value={filters.capacity}
-              onChange={(e) => handleFilterChange('capacity', e.target.value)}
-              className="filter-select"
-            >
-              <option value="">Tất cả</option>
-              <option value="1-2">1-2 người</option>
-              <option value="3-4">3-4 người</option>
-              <option value="5-6">5-6 người</option>
-              <option value="7+">7+ người</option>
+              <option value="Indoor">Indoor</option>
+              <option value="Outdoor">Outdoor</option>
+              <option value="Patio">Patio</option>
+              <option value="VIP Room">VIP Room</option>
             </select>
           </div>
         </div>
@@ -120,14 +103,6 @@ const FilterSortPanel = ({
             >
               <FaSort className="sort-icon" />
               Sức chứa {getSortIcon('capacity')}
-            </button>
-
-            <button
-              className={`sort-btn ${sortConfig.field === 'location' ? 'active' : ''}`}
-              onClick={() => handleSortChange('location')}
-            >
-              <FaSort className="sort-icon" />
-              Khu vực {getSortIcon('location')}
             </button>
 
             <button

@@ -6,19 +6,28 @@ const EditTableModal = ({ table, onSave, onClose }) => {
     number: '',
     capacity: '',
     location: '',
-    status: 'available'
+    status: 'Active',
+    description: ''
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [showDeactivateWarning, setShowDeactivateWarning] = useState(false);
+  const [hasActiveOrders, setHasActiveOrders] = useState(false);
+
   useEffect(() => {
     if (table) {
+      // Check if table has active orders (mock check)
+      const activeOrdersExist = Math.random() > 0.7; // Random for demo
+      setHasActiveOrders(activeOrdersExist);
+      
       setFormData({
         number: table.number,
         capacity: table.capacity.toString(),
         location: table.location,
-        status: table.status
+        status: table.status === 'active' ? 'Active' : table.status === 'inactive' ? 'Inactive' : table.status || 'Active',
+        description: table.description || ''
       });
     }
   }, [table]);
@@ -56,8 +65,8 @@ const EditTableModal = ({ table, onSave, onClose }) => {
       const capacity = parseInt(formData.capacity);
       if (isNaN(capacity) || capacity <= 0) {
         newErrors.capacity = 'Số lượng ghế phải là số nguyên dương lớn hơn 0';
-      } else if (capacity > 20) {
-        newErrors.capacity = 'Số lượng ghế không được vượt quá 20';
+      } else if (capacity < 1 || capacity > 20) {
+        newErrors.capacity = 'Số lượng ghế phải từ 1 đến 20';
       }
     }
 
@@ -71,11 +80,22 @@ const EditTableModal = ({ table, onSave, onClose }) => {
       newErrors.status = 'Trạng thái là bắt buộc';
     }
 
+    // Description is optional, just check length
+    if (formData.description && formData.description.length > 500) {
+      newErrors.description = 'Mô tả không được vượt quá 500 ký tự';
+    }
+
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if deactivating table with active orders
+    if (table.status === 'Active' && formData.status === 'Inactive' && hasActiveOrders) {
+      setShowDeactivateWarning(true);
+      return;
+    }
     
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -93,7 +113,8 @@ const EditTableModal = ({ table, onSave, onClose }) => {
         number: formData.number.trim(),
         capacity: parseInt(formData.capacity),
         location: formData.location.trim(),
-        status: formData.status
+        status: formData.status,
+        description: formData.description.trim()
       };
 
       onSave(tableData);
@@ -104,6 +125,19 @@ const EditTableModal = ({ table, onSave, onClose }) => {
     }
   };
 
+  const handleConfirmDeactivate = () => {
+    setShowDeactivateWarning(false);
+    // Proceed with the update
+    const tableData = {
+      number: formData.number.trim(),
+      capacity: parseInt(formData.capacity),
+      location: formData.location.trim(),
+      status: formData.status,
+      description: formData.description.trim()
+    };
+    onSave(tableData);
+  };
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -111,9 +145,8 @@ const EditTableModal = ({ table, onSave, onClose }) => {
   };
 
   const getStatusOptions = () => [
-    { value: 'available', label: 'Trống', color: '#28a745' },
-    { value: 'occupied', label: 'Có khách', color: '#dc3545' },
-    { value: 'reserved', label: 'Đã đặt', color: '#ffc107' }
+    { value: 'Active', label: 'Kích hoạt', color: '#28a745' },
+    { value: 'Inactive', label: 'Tạm ngưng', color: '#dc3545' }
   ];
 
   return (
@@ -190,11 +223,10 @@ const EditTableModal = ({ table, onSave, onClose }) => {
               disabled={isSubmitting}
             >
               <option value="">Chọn khu vực</option>
-              <option value="Khu A">Khu A - Tầng 1</option>
-              <option value="Khu B">Khu B - Tầng 1</option>
-              <option value="Khu C">Khu C - Tầng 2</option>
-              <option value="Khu D">Khu D - Tầng 2</option>
-              <option value="Khu VIP">Khu VIP - Tầng 3</option>
+              <option value="Indoor">Indoor - Trong nhà</option>
+              <option value="Outdoor">Outdoor - Ngoài trời</option>
+              <option value="Patio">Patio - Sân hiên</option>
+              <option value="VIP Room">VIP Room - Phòng VIP</option>
             </select>
             {errors.location && (
               <div className="invalid-feedback">{errors.location}</div>
@@ -225,6 +257,29 @@ const EditTableModal = ({ table, onSave, onClose }) => {
             {errors.status && (
               <div className="invalid-feedback">{errors.status}</div>
             )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="description" className="form-label">
+              Mô Tả (Tùy chọn)
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              className={`form-control ${errors.description ? 'is-invalid' : ''}`}
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Nhập mô tả về bàn (vị trí cụ thể, đặc điểm...)"
+              rows="3"
+              maxLength="500"
+              disabled={isSubmitting}
+            />
+            {errors.description && (
+              <div className="invalid-feedback">{errors.description}</div>
+            )}
+            <small className="form-text text-muted">
+              Tối đa 500 ký tự. Còn lại: {500 - formData.description.length}
+            </small>
           </div>
 
           <div className="status-preview">
@@ -260,6 +315,42 @@ const EditTableModal = ({ table, onSave, onClose }) => {
           </div>
         </form>
       </div>
+      
+      {showDeactivateWarning && (
+        <div className="warning-overlay">
+          <div className="warning-modal">
+            <div className="warning-header">
+              <h3>⚠️ Cảnh báo</h3>
+            </div>
+            <div className="warning-content">
+              <p>Bàn này hiện có đơn hàng đang hoạt động!</p>
+              <p>Việc tạm ngưng bàn sẽ:</p>
+              <ul>
+                <li>Ngăn không cho đặt hàng mới</li>
+                <li>Giữ nguyên lịch sử đơn hàng hiện tại</li>
+                <li>Khách hàng hiện tại vẫn có thể tiếp tục sử dụng</li>
+              </ul>
+              <p><strong>Bạn có chắc chắn muốn tiếp tục?</strong></p>
+            </div>
+            <div className="warning-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowDeactivateWarning(false)}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="btn btn-warning"
+                onClick={handleConfirmDeactivate}
+              >
+                Xác nhận tạm ngưng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
