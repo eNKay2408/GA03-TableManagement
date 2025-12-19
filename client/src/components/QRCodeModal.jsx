@@ -52,6 +52,11 @@ const QRCodeModal = ({ table, onClose }) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  }; 
+
+   const handleDownloadPDF = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    window.open(`${apiUrl}/tables/${table.id}/qr-pdf`, '_blank');
   };
 
   return (
@@ -131,8 +136,13 @@ const QRCodeModal = ({ table, onClose }) => {
               className="btn btn-primary"
               onClick={handleDownloadQR}
             >
-              <FaDownload className="btn-icon" />
-              Tải QR Code
+              <FaDownload /> Tải PNG
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={handleDownloadPDF}
+            >
+              <FaFilePdf /> Tải PDF
             </button>
             <button
               className="btn btn-secondary"
