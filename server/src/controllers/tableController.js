@@ -9,6 +9,7 @@ import {
     verifyQRToken,
     generateCompleteQRData
 } from '../utils/qrUtils.js';
+import { generateTableQRPDF, generateBulkTablesPDF } from '../utils/pdfUtils.js';
 
 /**
  * Table Controller - Xử lý CRUD operations cho tables với MongoDB
@@ -491,6 +492,99 @@ class TableController {
             });
         } catch (error) {
             console.error('Error getting QR image:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: error.message
+            });
+        }
+    }
+
+    static async getQRPDF(req, res) {
+        try {
+            const { id } = req.params;
+
+            // Validate ID
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid table ID format'
+                });
+            }
+
+            // Get table
+            const table = await Table.findById(id);
+            if (!table) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Table not found'
+                });
+            }
+
+            // Check if QR exists
+            if (!table.qr_token) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No QR Code found for this table'
+                });
+            }
+
+            // Generate PDF
+            const qrUrl = generateQRUrl(table.qr_token);
+            const pdfBuffer = await generateTableQRPDF(table, qrUrl);
+
+            // Send PDF
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment; filename="table-${table.table_number}-qr.pdf"`,
+                'Content-Length': pdfBuffer.length
+            });
+
+            res.send(pdfBuffer);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * GET /api/tables/qr-pdf/bulk - Download all QR Codes as single PDF
+     */
+    static async getBulkQRPDF(req, res) {
+        try {
+            // Get all active tables with QR tokens
+            const tables = await Table.find({
+                status: 'active',
+                qr_token: { $ne: null }
+            }).sort({ table_number: 1 });
+
+            if (tables.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No active tables with QR codes found'
+                });
+            }
+
+            // Generate bulk PDF
+            const pdfBuffer = await generateBulkTablesPDF(tables, generateQRUrl);
+
+            // Send PDF
+            const timestamp = new Date().toISOString().split('T')[0];
+            res.set({
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment; filename="all-tables-qr-${timestamp}.pdf"`,
+                'Content-Length': pdfBuffer.length
+            });
+
+            res.send(pdfBuffer);
+
+        } catch (error) {
+            console.error('Error generating bulk PDF:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',

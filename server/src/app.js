@@ -91,6 +91,8 @@ app.listen(PORT, () => {
   === QR Code APIs (Ngày 2) ===
   ├── POST   /api/tables/:id/regenerate-qr  - Regenerate QR (invalidate old)
   ├── GET    /api/tables/:id/qr-image       - Get QR image (PNG download)
+  ├── GET    /api/tables/:id/qr-pdf         - Download QR as PDF
+  ├── GET    /api/tables/qr-pdf/bulk        - Download all QRs as single PDF
   └── GET    /api/verify?token=xxx          - Verify QR token
 
   === Menu APIs (Ngày 3) ===
