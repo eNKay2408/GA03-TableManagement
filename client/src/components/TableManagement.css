@@ -13,7 +13,7 @@
   border-bottom: 2px solid #e9ecef;
 }
 
-.table-management-header > div {
+.table-management-header>div {
   display: flex;
   gap: 10px;
 }
@@ -96,17 +96,87 @@
 
 .action-buttons {
   display: flex;
-  gap: 8px;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
+/* Action button styling - matching the image design */
 .btn-sm {
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 40px;
+  height: 36px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .btn-sm svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Icon-only buttons (QR and Edit) */
+.btn-sm:not(:last-child) {
+  padding: 8px 10px;
+}
+
+/* Green QR button */
+.btn-success.btn-sm {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success.btn-sm:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+/* Yellow Edit button */
+.btn-warning.btn-sm {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning.btn-sm:hover {
+  background-color: #e0a800;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+/* Gray Deactivate button */
+.btn-secondary.btn-sm {
+  background-color: #6c757d;
+  color: white;
+  min-width: 90px;
+}
+
+.btn-secondary.btn-sm:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+}
+
+/* Blue Activate button */
+.btn-primary.btn-sm {
+  background-color: #007bff;
+  color: white;
+  min-width: 90px;
+}
+
+.btn-primary.btn-sm:hover {
+  background-color: #0069d9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
 }
 
 /* Responsive */
@@ -121,7 +191,7 @@
     gap: 15px;
   }
 
-  .table-management-header > div {
+  .table-management-header>div {
     justify-content: center;
   }
 
@@ -142,10 +212,6 @@
   .table th,
   .table td {
     padding: 8px 12px;
-  }
-
-  .action-buttons {
-    flex-direction: column;
   }
 }
 
@@ -355,8 +421,15 @@
 
 .qr-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 15px;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.qr-actions button {
+  flex: 0 1 auto;
+  min-width: 120px;
 }
 
 /* Responsive Filter Panel */
@@ -365,12 +438,12 @@
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .sort-buttons {
     grid-template-columns: 1fr;
   }
-  
-  .table-management-header > div {
+
+  .table-management-header>div {
     flex-direction: column;
     gap: 10px;
   }
@@ -503,4 +576,123 @@
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+}
+
+/* Spin animation for regenerate QR button */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Info button style */
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
+.btn-info:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Warning button improvement for visibility */
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #d39e00;
+}
+
+.btn-warning:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+  cursor: not-allowed;
+}
+
+/* QR Actions responsive layout improvement */
+.qr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.qr-actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: auto;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+.qr-actions button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Bulk Actions Section */
+.bulk-actions {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.bulk-actions h3 {
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bulk-actions-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bulk-actions .btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.bulk-actions .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.bulk-actions .btn-danger {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.bulk-actions .btn-danger:hover {
+  background: #c82333;
 }

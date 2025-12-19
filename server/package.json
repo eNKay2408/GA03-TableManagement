@@ -7,10 +7,12 @@
     "scripts": {
         "start": "node src/app.js",
         "dev": "nodemon src/app.js",
-        "db:seed": "node src/config/seedDb.js"
+        "db:seed": "node src/config/seedDb.js",
+        "db:clear": "node src/config/clearDb.js",
+        "db:reset": "node src/config/clearDb.js && node src/config/seedDb.js"
     },
     "dependencies": {
-        "archiver": "^6.0.1",
+        "archiver": "^6.0.2",
         "cors": "^2.8.5",
         "dotenv": "^16.3.1",
         "express": "^4.18.2",

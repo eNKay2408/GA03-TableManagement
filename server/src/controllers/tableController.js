@@ -10,6 +10,7 @@ import {
     generateCompleteQRData
 } from '../utils/qrUtils.js';
 import { generateTableQRPDF, generateBulkTablesPDF } from '../utils/pdfUtils.js';
+import archiver from 'archiver';
 
 /**
  * Table Controller - Xử lý CRUD operations cho tables với MongoDB
@@ -409,8 +410,8 @@ class TableController {
                 });
             }
 
-            // Check if table is active
-            if (table.status !== 'active') {
+            // Check if table is active (Model uses 'Active' with capital A)
+            if (table.status !== 'Active') {
                 return res.status(400).json({
                     success: false,
                     message: 'Cannot regenerate QR for inactive table. Please activate the table first.'
@@ -573,9 +574,9 @@ class TableController {
      */
     static async getBulkQRPDF(req, res) {
         try {
-            // Get all active tables with QR tokens
+            // Get all active tables with QR tokens (Model uses 'Active' with capital A)
             const tables = await Table.find({
-                status: 'active',
+                status: 'Active',
                 qr_token: { $ne: null }
             }).sort({ table_number: 1 });
 
@@ -601,6 +602,127 @@ class TableController {
 
         } catch (error) {
             console.error('Error generating bulk PDF:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * POST /api/tables/bulk-regenerate-qr - Regenerate all QR Codes at once
+     */
+    static async bulkRegenerateQR(req, res) {
+        try {
+            // Get all active tables
+            const tables = await Table.find({ status: 'Active' });
+
+            if (tables.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No active tables found'
+                });
+            }
+
+            const results = {
+                success: [],
+                failed: []
+            };
+
+            // Regenerate QR for each table
+            for (const table of tables) {
+                try {
+                    const newQRToken = generateQRToken(table._id, table.restaurant_id);
+                    table.qr_token = newQRToken;
+                    table.qr_token_created_at = new Date();
+                    await table.save();
+
+                    results.success.push({
+                        table_id: table._id,
+                        table_number: table.table_number
+                    });
+                } catch (err) {
+                    results.failed.push({
+                        table_id: table._id,
+                        table_number: table.table_number,
+                        error: err.message
+                    });
+                }
+            }
+
+            // Log security event
+            console.log(`[SECURITY] Bulk QR regeneration: ${results.success.length} success, ${results.failed.length} failed at ${new Date().toISOString()}`);
+
+            res.status(200).json({
+                success: true,
+                message: `Bulk QR regeneration completed. ${results.success.length} tables updated, ${results.failed.length} failed.`,
+                data: {
+                    total_tables: tables.length,
+                    successful: results.success.length,
+                    failed: results.failed.length,
+                    details: results
+                }
+            });
+        } catch (error) {
+            console.error('Error in bulk regenerate QR:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * GET /api/tables/qr-zip/bulk - Download all QR Codes as ZIP file
+     */
+    static async downloadBulkQRZIP(req, res) {
+        try {
+            // Get all active tables with QR tokens
+            const tables = await Table.find({
+                status: 'Active',
+                qr_token: { $ne: null }
+            }).sort({ table_number: 1 });
+
+            if (tables.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No active tables with QR codes found'
+                });
+            }
+
+            // Set up ZIP response
+            const timestamp = new Date().toISOString().split('T')[0];
+            res.set({
+                'Content-Type': 'application/zip',
+                'Content-Disposition': `attachment; filename="all-qr-codes-${timestamp}.zip"`
+            });
+
+            // Create ZIP archive
+            const archive = archiver('zip', { zlib: { level: 9 } });
+
+            archive.on('error', (err) => {
+                throw err;
+            });
+
+            // Pipe archive to response
+            archive.pipe(res);
+
+            // Add each QR code PNG to the archive
+            for (const table of tables) {
+                const qrUrl = generateQRUrl(table.qr_token);
+                const pngBuffer = await generateQRCodeBuffer(qrUrl);
+                archive.append(pngBuffer, { name: `QR_${table.table_number}.png` });
+            }
+
+            // Finalize the archive
+            await archive.finalize();
+
+            console.log(`[INFO] ZIP download completed: ${tables.length} QR codes`);
+
+        } catch (error) {
+            console.error('Error creating ZIP:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',

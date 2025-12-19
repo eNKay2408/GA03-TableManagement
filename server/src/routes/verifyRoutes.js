@@ -58,8 +58,8 @@ router.get('/', async (req, res) => {
             });
         }
 
-        // Check if table is active
-        if (table.status !== 'active') {
+        // Check if table is active (Model uses 'Active' with capital A)
+        if (table.status !== 'Active') {
             return res.status(400).json({
                 success: false,
                 message: 'This table is currently not available. Please contact staff.',
@@ -67,14 +67,20 @@ router.get('/', async (req, res) => {
             });
         }
 
-        // Success! Return table info
+        // Success! Return table info with full details for MenuPage
         res.status(200).json({
             success: true,
             message: 'QR Code verified successfully',
             data: {
                 table_id: table._id,
-                table_number: table.table_number,
-                capacity: table.capacity,
+                table: {
+                    _id: table._id,
+                    table_number: table.table_number,
+                    capacity: table.capacity,
+                    location: table.location,
+                    description: table.description || '',
+                    status: table.status
+                },
                 restaurant_id: table.restaurant_id,
                 verified_at: new Date().toISOString()
             }
@@ -136,8 +142,8 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Check table status
-        if (table.status !== 'active') {
+        // Check table status (Model uses 'Active' with capital A)
+        if (table.status !== 'Active') {
             return res.status(400).json({
                 success: false,
                 message: 'This table is currently unavailable.',
@@ -145,14 +151,22 @@ router.post('/', async (req, res) => {
             });
         }
 
+        // Return full table info for MenuPage consistency
         res.status(200).json({
             success: true,
             message: 'Token verified successfully',
             data: {
                 table_id: table._id,
-                table_number: table.table_number,
-                capacity: table.capacity,
-                restaurant_id: table.restaurant_id
+                table: {
+                    _id: table._id,
+                    table_number: table.table_number,
+                    capacity: table.capacity,
+                    location: table.location,
+                    description: table.description || '',
+                    status: table.status
+                },
+                restaurant_id: table.restaurant_id,
+                verified_at: new Date().toISOString()
             }
         });
     } catch (error) {

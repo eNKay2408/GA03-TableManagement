@@ -18,6 +18,12 @@ router.get('/', TableController.getAllTables);
 // GET /api/tables/qr-pdf/bulk - Download all QR codes as single PDF
 router.get('/qr-pdf/bulk', TableController.getBulkQRPDF);
 
+// GET /api/tables/qr-zip/bulk - Download all QR codes as ZIP file
+router.get('/qr-zip/bulk', TableController.downloadBulkQRZIP);
+
+// POST /api/tables/bulk-regenerate-qr - Regenerate all QR codes at once
+router.post('/bulk-regenerate-qr', TableController.bulkRegenerateQR);
+
 // GET /api/tables/:id - Lấy chi tiết một bàn theo ID (bao gồm QR image)
 router.get('/:id', TableController.getTableById);
 
@@ -40,3 +46,4 @@ router.get('/:id/qr-image', TableController.getQRImage);
 router.get('/:id/qr-pdf', TableController.getQRPDF);
 
 export default router;
+
