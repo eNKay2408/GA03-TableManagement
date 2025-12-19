@@ -1,0 +1,26 @@
+{
+    "name": "table-management-server",
+    "version": "1.0.0",
+    "description": "Backend API for Table Management System with QR Code Generation",
+    "main": "src/app.js",
+    "type": "module",
+    "scripts": {
+        "start": "node src/app.js",
+        "dev": "nodemon src/app.js",
+        "db:seed": "node src/config/seedDb.js"
+    },
+    "dependencies": {
+        "archiver": "^6.0.1",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "jsonwebtoken": "^9.0.2",
+        "mongoose": "^8.0.3",
+        "pdfkit": "^0.14.0",
+        "qrcode": "^1.5.3",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.2"
+    }
+}
