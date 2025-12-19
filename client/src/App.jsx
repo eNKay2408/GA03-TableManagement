@@ -1,0 +1,42 @@
+import React from 'react';
+import TableManagement from './components/TableManagement';
+import './App.css';
+
+function App() {
+  try {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <div className="container">
+            <h1 className="app-title">
+              🍽️ Restaurant Management System
+            </h1>
+            <p className="app-subtitle">
+              Hệ thống quản lý nhà hàng - Admin Dashboard
+            </p>
+          </div>
+        </header>
+        
+        <main className="App-main">
+          <TableManagement />
+        </main>
+        
+        <footer className="App-footer">
+          <div className="container">
+            <p>&copy; 2024 Restaurant Management System. All rights reserved.</p>
+          </div>
+        </footer>
+      </div>
+    );
+  } catch (error) {
+    return (
+      <div style={{padding: '20px'}}>
+        <h1>Error Loading App</h1>
+        <p>Error: {error.message}</p>
+        <pre>{error.stack}</pre>
+      </div>
+    );
+  }
+}
+
+export default App;
