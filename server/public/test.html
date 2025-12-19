@@ -277,6 +277,20 @@
       <div class="qr-container" id="newQrDisplay"></div>
     </div>
 
+    <!-- Download PDF -->
+    <div class="card">
+      <h3><span class="method get">GET</span> Download QR as PDF</h3>
+      <div class="form-group">
+        <label>Table ID:</label>
+        <input type="text" id="pdfTableId" placeholder="Paste table ID here...">
+      </div>
+      <button onclick="downloadPDF()">📄 Tải PDF (1 bàn)</button>
+      <button onclick="downloadBulkPDF()" style="background: linear-gradient(135deg, #667eea, #764ba2);">📚 Tải PDF tất cả bàn</button>
+      <div class="response-area">
+        <pre id="pdfResponse">Click button to download...</pre>
+      </div>
+    </div>
+
     <!-- Verify Token -->
     <div class="card">
       <h3><span class="method get">GET</span> Verify QR Token</h3>
@@ -498,6 +512,26 @@
       const el = document.getElementById('verifyResponse');
       el.className = result.success ? 'success' : 'error';
       el.textContent = formatJson(result.data);
+    }
+
+    // Download single table PDF
+    function downloadPDF() {
+      const id = document.getElementById('pdfTableId').value;
+      if (!id) {
+        alert('Vui lòng nhập Table ID!');
+        return;
+      }
+      
+      const url = `${API_BASE}/tables/${id}/qr-pdf`;
+      document.getElementById('pdfResponse').textContent = `Đang tải PDF từ:\n${url}`;
+      window.open(url, '_blank');
+    }
+
+    // Download bulk PDF
+    function downloadBulkPDF() {
+      const url = `${API_BASE}/tables/qr-pdf/bulk`;
+      document.getElementById('pdfResponse').textContent = `Đang tải PDF tất cả bàn từ:\n${url}`;
+      window.open(url, '_blank');
     }
 
     // Load tables on page load
